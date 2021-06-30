@@ -2,3 +2,4 @@
 *venv
 */__pycache__
 .cache-12141073399
+*.pyc

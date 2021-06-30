@@ -4,6 +4,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
+from utils import *
+from spot_utils import *
 #from replit import db
 #from utils import *
 # from keep_alive import keep_alive
@@ -31,20 +33,24 @@ sp = spotipy.Spotify(auth_manager=spot_token)
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
 
-#if message is spotify playlist
 @client.event
 async def on_message(message):
   if message.author == client.user:
     return
   msg = message.content
+  #print(message.channel.id, message.channel.name)
 
-  if msg.startswith('https://open.spotify.com'):
-    print('Someone posted spotify music')
-    await message.channel.send('Somebody posted spotify music')
-    create_playlist(sp, spotify_username, 'poop')
-
-def create_playlist(sp, username, link):
-  sp.user_playlist_create(user=username,public=True,name='poop',description='testing',collaborative=False)
+  # playlist posted in general
+  if (message.channel.name == 'general'): 
+    if msg.startswith('https://open.spotify.com'):
+        print('Someone posted spotify music')
+        await message.channel.send('Somebody posted spotify music')
+        link, description = split_music_message(msg)
+        print(f'Link: {link} and Description: {description}')
+        playlist_songs = get_playlist_songs(sp, link)
+        print(f'Playlist Songs: {playlist_songs}')
+  else:
+    print('other channel')
 
 #create_playlist(sp, spotify_username, 'test')
 client.run(bot_token)
