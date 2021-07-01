@@ -18,5 +18,17 @@ Contents of env file:
 ### Info
 This is a discord bot created to organize and manage music posted to the laCreme discord channel.
 
+### Goals
+	1. laCreme running monthly playlist
+		a. Purge this playlist every month with Python apscheduler library
+	2. Archive all songs ever uploaded from laCreme playlist
+	3. Keep running playlists of loosie channels as well
+	4. Figure out if these playlists will all be kept on my spotify account, or if they can be stored in the laCreme spotify app that was created
+	5. Deployment with Heroku (free)
+	6. $ see posts jtyson728 --> see all songs uploaded by a certain user
+	7. Keep user metrics of # of songs posted admin only
+	8. Each song has a genre profile, can have function that returns the genre that each user posts the most
+	
+
 ### Libraries
 TBD
