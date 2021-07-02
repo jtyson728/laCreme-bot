@@ -1,6 +1,7 @@
 import os
 import discord
 import spotipy
+import apscheduler
 from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
@@ -41,15 +42,16 @@ async def on_message(message):
   msg = message.content
 
   # playlist posted in general
-  if (message.channel.name == 'general'): 
+  #if (message.channel.name == 'general'): 
     # this denotes that the message is somebody posting a laCreme playlist
-    if msg.startswith('https://open.spotify.com'):
-        await message.channel.send(f'{msg.author.user.id} just uploaded some new creme')
-        link, description = split_music_message(msg)
-        playlist_songs = get_playlist_songs(sp, link)
-        print(f'Playlist Songs: {playlist_songs}')
-  else:
-    print('other channel')
+  if msg.startswith('https://open.spotify.com'):
+      await message.channel.send(f'{message.author.name} just uploaded some new creme')
+      link, description = split_music_message(msg)
+      playlist_songs = get_playlist_songs(sp, link)
+      print(f'Playlist Songs: {playlist_songs}')
+      add_songs_to_playlist(sp, playlist_songs, message.channel.name)
+  # else:
+  #   print('other channel')
 
 # This runs the bot, with secret bot token, very important! This will need to be kept alive and running on server
 client.run(bot_token)
