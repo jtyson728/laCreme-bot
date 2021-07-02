@@ -1,4 +1,6 @@
 import os
+import signal
+import sys
 import discord
 import spotipy
 import apscheduler
@@ -16,6 +18,9 @@ scope = "playlist-modify-public user-library-read user-modify-playback-state"
 spotify_username = '12141073399'
 redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
 
+job_defaults = {'max_instances':3}
+scheduler = BackgroundScheduler(daemon=True, job_defaults=job_defaults)
+
 #discord bot credentials (ask Jeremy for environment keys)
 bot_token = os.environ['TOKEN']
 
@@ -24,7 +29,6 @@ client = discord.Client()
 
 # puts credentials for Jeremys account into SpotifyOAuth.
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
-
 
 # initiates spotify connection instance
 sp = spotipy.Spotify(auth_manager=spot_token)
@@ -46,7 +50,7 @@ async def on_message(message):
     #await message.channel.send(f'{message.author.name} just uploaded some new creme')
     link, description = split_music_message(msg)
     playlist_songs = get_playlist_songs(sp, link)
-    if (message.channel.name == 'lacreme' and len(playlist_songs) > 5):
+    if (message.channel.name == 'lacreme' and len(playlist_songs) > 5):        # if lacreme playlist, make sure user only posted max 5 songs to add
       await message.channel.send('**ALERT** Please repost a playlist with 5 or less songs', delete_after=60.0)
       if description != '':
         await message.channel.send(f'Here is your description to copy, this message will delete after 60 seconds: \n{description}', delete_after=60.0)
@@ -55,11 +59,17 @@ async def on_message(message):
     else:
       print(f'Playlist Songs: {playlist_songs}')
       add_songs_to_playlist(sp, playlist_songs, message.channel.name)
+  elif msg.startswith('$clear'):                    #clear the playlist associated with this channels name
+    clear_playlist(sp, message.channel.name)
   else:
-    if msg.startswith('$clear'):
-      clear_playlist(sp, message.channel.name)
     if any(mention.name == 'jtyson728' for mention in message.mentions):
       await message.channel.send('**ALERT** Tommy is a very stinky boy', delete_after=10.0)
 
+# def signal_handler(sig, frame):
+#   scheduler.shutdown(wait=False)
+
 # This runs the bot, with secret bot token, very important! This will need to be kept alive and running on server
+#signal.signal(signal.SIGINT, signal_handler)
+scheduler.start()
+scheduler.add_job(clear_playlist, args=[sp, 'lacreme'], trigger='interval', seconds=30)    # clear lacreme playlist every 30 seconds (testing purposes)
 client.run(bot_token)
