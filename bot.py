@@ -2,6 +2,7 @@ import os
 import discord
 import spotipy
 import apscheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
@@ -55,6 +56,8 @@ async def on_message(message):
       print(f'Playlist Songs: {playlist_songs}')
       add_songs_to_playlist(sp, playlist_songs, message.channel.name)
   else:
+    if msg.startswith('$clear'):
+      clear_playlist(sp, message.channel.name)
     if any(mention.name == 'jtyson728' for mention in message.mentions):
       await message.channel.send('**ALERT** Tommy is a very stinky boy', delete_after=10.0)
 

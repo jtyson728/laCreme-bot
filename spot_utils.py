@@ -43,3 +43,8 @@ def add_songs_to_playlist(sp, tracks_to_add, channel_name):
     create_playlist(sp, spotify_username, f'{channel_name} monthly')
     add_id = get_existing_playlist_id(sp, channel_name)
     sp.playlist_add_items(add_id, tracks_to_add)
+
+def clear_playlist(sp, channel_name):
+  playlist_id = get_existing_playlist_id(sp, channel_name)
+  track_ids = get_playlist_songs(sp, playlist_id)
+  results = sp.playlist_remove_all_occurrences_of_items(playlist_id, track_ids)
