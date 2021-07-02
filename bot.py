@@ -41,17 +41,22 @@ async def on_message(message):
     return
   msg = message.content
 
-  # playlist posted in general
-  #if (message.channel.name == 'general'): 
-    # this denotes that the message is somebody posting a laCreme playlist
   if msg.startswith('https://open.spotify.com'):
-      await message.channel.send(f'{message.author.name} just uploaded some new creme')
-      link, description = split_music_message(msg)
-      playlist_songs = get_playlist_songs(sp, link)
+    #await message.channel.send(f'{message.author.name} just uploaded some new creme')
+    link, description = split_music_message(msg)
+    playlist_songs = get_playlist_songs(sp, link)
+    if (message.channel.name == 'lacreme' and len(playlist_songs) > 5):
+      await message.channel.send('**ALERT** Please repost a playlist with 5 or less songs', delete_after=60.0)
+      if description != '':
+        await message.channel.send(f'Here is your description to copy, this message will delete after 60 seconds: \n{description}', delete_after=60.0)
+      await message.delete()
+
+    else:
       print(f'Playlist Songs: {playlist_songs}')
       add_songs_to_playlist(sp, playlist_songs, message.channel.name)
-  # else:
-  #   print('other channel')
+  else:
+    if any(mention.name == 'jtyson728' for mention in message.mentions):
+      await message.channel.send('**ALERT** Tommy is a very stinky boy', delete_after=10.0)
 
 # This runs the bot, with secret bot token, very important! This will need to be kept alive and running on server
 client.run(bot_token)

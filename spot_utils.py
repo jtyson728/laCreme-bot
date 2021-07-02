@@ -17,14 +17,10 @@ def get_playlist_songs(sp, link):
                                 offset=offset,
                                 fields='items.track.id,total,items.track.name,items.track.artists',
                                 additional_types=['track'])
-  
     if len(response['items']) == 0:
         break
-    #print(response['items'])
     for item in response['items']:
       track_ids_list.append(item['track']['id'])
-    #offset = offset + len(response['items'])
-    #print(offset, "/", response['total'])
     return track_ids_list
 
 # creates new playlist, add functionality to check if playlist name already exists
@@ -39,7 +35,6 @@ def get_existing_playlist_id(sp, channel_name):
   return None
 
 def add_songs_to_playlist(sp, tracks_to_add, channel_name):
-
   # check to see if channel playlist already exists in Jeremy's account
   add_id = get_existing_playlist_id(sp, channel_name)
   if add_id:
