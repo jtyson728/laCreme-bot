@@ -15,22 +15,19 @@ from spot_utils import *
 spotify_client_id = os.environ['SPOTIPY_CLIENT_ID']
 spotify_client_secret = os.environ['SPOTIPY_CLIENT_SECRET']
 scope = "playlist-modify-public user-library-read user-modify-playback-state"
-spotify_username = '12141073399'
 redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
+spotify_username = os.environ['SPOT_USERNAME']
 
+# create apscheduler object
 job_defaults = {'max_instances':3}
 scheduler = BackgroundScheduler(daemon=True, job_defaults=job_defaults)
 
-#discord bot credentials (ask Jeremy for environment keys)
+#discord bot credentials (ask Jeremy for environment keys) and create a discord client connection
 bot_token = os.environ['TOKEN']
-
-# this creates a discord client connection
 client = discord.Client()
 
-# puts credentials for Jeremys account into SpotifyOAuth.
+# puts credentials for Jeremys account into SpotifyOAuth and initiate spotify connection instance
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
-
-# initiates spotify connection instance
 sp = spotipy.Spotify(auth_manager=spot_token)
 
 #notification that bot is logged in when bot is first started

@@ -1,11 +1,12 @@
 #want to add all spotify actions in this file
+import os
 import spotipy
 import apscheduler
 from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
 
-spotify_username = '12141073399'
+spotify_username = os.environ['SPOT_USERNAME']
 
 # returns a dictionary object containing the name, and spotify ids of the songs on the playlist
 def get_playlist_songs(sp, link):
