@@ -1,5 +1,11 @@
 import apscheduler
 
+class Post:
+  def __init__(self, name, time_posted, author):
+    self.name = name
+    self.time_posted = time_posted
+    self.author = author
+
 # splits message into 2 parts: playlist link, and their description for the playlist
 def split_music_message(msg):
   if len(msg.split()) > 1:
@@ -9,3 +15,6 @@ def split_music_message(msg):
     link = msg
     description = ''
   return link, description
+
+def last_month_user_metrics(user):
+  return user

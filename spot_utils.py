@@ -13,16 +13,16 @@ def get_playlist_songs(sp, link):
   track_ids_list = []
   playlist_id = link
   offset = 0
-  while True:
-    response = sp.playlist_items(playlist_id,
-                                offset=offset,
-                                fields='items.track.id,total,items.track.name,items.track.artists',
-                                additional_types=['track'])
-    if len(response['items']) == 0:
-        break
-    for item in response['items']:
-      track_ids_list.append(item['track']['id'])
-    return track_ids_list
+
+  response = sp.playlist_items(playlist_id,
+                              offset=offset,
+                              fields='items.track.id,total,items.track.name,items.track.artists',
+                              additional_types=['track'])
+  if len(response['items']) == 0:
+      return None
+  for item in response['items']:
+    track_ids_list.append(item['track']['id'])
+  return track_ids_list
 
 # creates new playlist, add functionality to check if playlist name already exists
 def create_playlist(sp, username, playlist_name):
@@ -48,4 +48,7 @@ def add_songs_to_playlist(sp, tracks_to_add, channel_name):
 def clear_playlist(sp, channel_name):
   playlist_id = get_existing_playlist_id(sp, channel_name)
   track_ids = get_playlist_songs(sp, playlist_id)
-  results = sp.playlist_remove_all_occurrences_of_items(playlist_id, track_ids)
+  if(track_ids):
+    results = sp.playlist_remove_all_occurrences_of_items(playlist_id, track_ids)
+  else:
+    print('Playlist already empty!!!!')

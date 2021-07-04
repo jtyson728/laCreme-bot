@@ -2,6 +2,7 @@ import os
 import signal
 import sys
 import discord
+from discord.ext import commands, tasks
 import spotipy
 import apscheduler
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -17,6 +18,7 @@ spotify_client_secret = os.environ['SPOTIPY_CLIENT_SECRET']
 scope = "playlist-modify-public user-library-read user-modify-playback-state"
 redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
 spotify_username = os.environ['SPOT_USERNAME']
+admins = os.environ['ADMINS']
 
 # create apscheduler object
 job_defaults = {'max_instances':3}
@@ -24,7 +26,7 @@ scheduler = BackgroundScheduler(daemon=True, job_defaults=job_defaults)
 
 #discord bot credentials (ask Jeremy for environment keys) and create a discord client connection
 bot_token = os.environ['TOKEN']
-client = discord.Client()
+client = commands.Bot(command_prefix='$')
 
 # puts credentials for Jeremys account into SpotifyOAuth and initiate spotify connection instance
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
@@ -48,7 +50,7 @@ async def on_message(message):
     link, description = split_music_message(msg)
     playlist_songs = get_playlist_songs(sp, link)
     if (message.channel.name == 'lacreme' and len(playlist_songs) > 5):        # if lacreme playlist, make sure user only posted max 5 songs to add
-      await message.channel.send('**ALERT** Please repost a playlist with 5 or less songs', delete_after=60.0)
+      await message.channel.send('**ALERT** Please repost a playlist with 5 or less songs', delete_after=30.0)
       if description != '':
         await message.channel.send(f'Here is your description to copy, this message will delete after 60 seconds: \n{description}', delete_after=60.0)
       await message.delete()
@@ -56,12 +58,28 @@ async def on_message(message):
     else:
       print(f'Playlist Songs: {playlist_songs}')
       add_songs_to_playlist(sp, playlist_songs, message.channel.name)
-  elif msg.startswith('$clear'):                    #clear the playlist associated with this channels name
-    clear_playlist(sp, message.channel.name)
+  # elif msg.startswith('$clear'):                    #clear the playlist associated with this channels name
+  #   clear_playlist(sp, message.channel.name)
+  # elif msg.startswith('$admin'):
+  #   if(msg.contains('stats')):
+  #     user_metrics = last_month_user_metrics(msg.split()[2])
+  #   return
   else:
     if any(mention.name == 'jtyson728' for mention in message.mentions):
       await message.channel.send('**ALERT** Tommy is a very stinky boy', delete_after=10.0)
+  await client.process_commands(message)
 
+@client.command(aliases=['admin', 'metrics'])
+async def stats(ctx, *, username):
+  await ctx.send(f'Stats of: {username}')
+  print("This function ran")
+
+@client.command()
+async def clear(ctx, *, playlist_name):
+  if(ctx.author.name in admins):
+    clear_playlist(sp, playlist_name)
+  else:
+    await ctx.send(f'You do not have admin permissions to run this command')
 # def signal_handler(sig, frame):
 #   scheduler.shutdown(wait=False)
 
