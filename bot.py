@@ -57,15 +57,9 @@ async def on_message(message):
 
     else:
       print(f'Playlist Songs: {playlist_songs}')
-      add_songs_to_playlist(sp, playlist_songs, message.channel.name)
-  # elif msg.startswith('$clear'):                    #clear the playlist associated with this channels name
-  #   clear_playlist(sp, message.channel.name)
-  # elif msg.startswith('$admin'):
-  #   if(msg.contains('stats')):
-  #     user_metrics = last_month_user_metrics(msg.split()[2])
-  #   return
+      add_songs_to_playlist(sp, playlist_songs, f'{message.channel.name} monthly')
   else:
-    if any(mention.name == 'jtyson728' for mention in message.mentions):
+    if any(mention.name == 'SonOfGloin' for mention in message.mentions):
       await message.channel.send('**ALERT** Tommy is a very stinky boy', delete_after=10.0)
   await client.process_commands(message)
 
@@ -77,14 +71,27 @@ async def stats(ctx, *, username):
 @client.command()
 async def clear(ctx, *, playlist_name):
   if(ctx.author.name in admins):
-    clear_playlist(sp, playlist_name)
+    clear_and_archive_playlist(sp, playlist_name, False)
   else:
     await ctx.send(f'You do not have admin permissions to run this command')
+
+@client.command()
+async def posts_by(ctx, *, username):
+  #channel = client.get_channel(730839966472601622)
+  messages = await ctx.channel.history(oldest_first=True, limit=500).flatten()
+  posts_list = []
+  for msg in messages:
+    if msg.author.name == username and msg.content.startswith('https://open.spotify.com'):
+      link, description = split_music_message(msg.content)
+      posts_list.append(link)
+  print(posts_list)
+
+
 # def signal_handler(sig, frame):
 #   scheduler.shutdown(wait=False)
 
 # This runs the bot, with secret bot token, very important! This will need to be kept alive and running on server
 #signal.signal(signal.SIGINT, signal_handler)
 scheduler.start()
-scheduler.add_job(clear_playlist, args=[sp, 'lacreme'], trigger='interval', seconds=30)    # clear lacreme playlist every 30 seconds (testing purposes)
+scheduler.add_job(clear_and_archive_playlist, args=[sp, 'lacreme monthly', True], trigger='interval', seconds=30)    # clear lacreme playlist every 30 seconds (testing purposes)
 client.run(bot_token)

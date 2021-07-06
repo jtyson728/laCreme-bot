@@ -1,4 +1,8 @@
 import apscheduler
+import discord
+from discord.ext import commands, tasks
+import requests
+import json
 
 class Post:
   def __init__(self, name, time_posted, author):
@@ -18,3 +22,4 @@ def split_music_message(msg):
 
 def last_month_user_metrics(user):
   return user
+

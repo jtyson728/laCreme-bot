@@ -32,7 +32,7 @@ def create_playlist(sp, username, playlist_name):
 def get_existing_playlist_id(sp, channel_name):
   existing_playlists = sp.user_playlists(spotify_username)
   for playlist in existing_playlists['items']:
-    if playlist['name'] == f'{channel_name} monthly':
+    if playlist['name'] == channel_name:
       return playlist['id']
   return None
 
@@ -41,14 +41,16 @@ def add_songs_to_playlist(sp, tracks_to_add, channel_name):
   if add_id:                                          # if it exists, add items
     sp.playlist_add_items(add_id, tracks_to_add)
   else:                                               # if it doesn't exist, create playlist, then get its id, then add songs to that playlist
-    create_playlist(sp, spotify_username, f'{channel_name} monthly')
+    create_playlist(sp, spotify_username, channel_name)
     add_id = get_existing_playlist_id(sp, channel_name)
     sp.playlist_add_items(add_id, tracks_to_add)
 
-def clear_playlist(sp, channel_name):
+def clear_and_archive_playlist(sp, channel_name, archive):
   playlist_id = get_existing_playlist_id(sp, channel_name)
   track_ids = get_playlist_songs(sp, playlist_id)
   if(track_ids):
     results = sp.playlist_remove_all_occurrences_of_items(playlist_id, track_ids)
+    if archive:
+      add_songs_to_playlist(sp, track_ids, f'{channel_name.split()[0]} archive')
   else:
     print('Playlist already empty!!!!')
