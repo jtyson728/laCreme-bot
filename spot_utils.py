@@ -52,3 +52,4 @@ def clear_playlist(sp, channel_name):
     results = sp.playlist_remove_all_occurrences_of_items(playlist_id, track_ids)
   else:
     print('Playlist already empty!!!!')
+

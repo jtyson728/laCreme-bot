@@ -32,6 +32,7 @@ client = commands.Bot(command_prefix='$')
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
 sp = spotipy.Spotify(auth_manager=spot_token)
 
+
 #notification that bot is logged in when bot is first started
 @client.event
 async def on_ready():
