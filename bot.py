@@ -32,6 +32,18 @@ client = commands.Bot(command_prefix='$')
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
 sp = spotipy.Spotify(auth_manager=spot_token)
 
+@client.command()
+async def load(ctx, extension):
+  client.load_extension(f'cogs.{extension}')
+
+@client.command()
+async def unload(ctx, extension):
+  client.unload_extension(f'cogs.{extension}')
+
+for filename in os.listdir('./cogs'):
+  if filename.endswith('.py'):
+    client.load_extension(f'cogs.{filename[:-3]}')
+
 #notification that bot is logged in when bot is first started
 @client.event
 async def on_ready():
@@ -63,11 +75,6 @@ async def on_message(message):
       await message.channel.send('**ALERT** Tommy is a very stinky boy', delete_after=10.0)
   await client.process_commands(message)
 
-@client.command(aliases=['admin', 'metrics'])
-async def stats(ctx, *, username):
-  await ctx.send(f'Stats of: {username}')
-  print("This function ran")
-
 @client.command()
 async def clear(ctx, *, playlist_name):
   if(ctx.author.name in admins):
@@ -78,7 +85,7 @@ async def clear(ctx, *, playlist_name):
 @client.command()
 async def posts_by(ctx, *, username):
   #channel = client.get_channel(730839966472601622)
-  messages = await ctx.channel.history(oldest_first=True, limit=500).flatten()
+  messages = await ctx.channel.history(oldest_first=False, limit=500).flatten()
   posts_list = []
   for msg in messages:
     if msg.author.name == username and msg.content.startswith('https://open.spotify.com'):
@@ -93,5 +100,5 @@ async def posts_by(ctx, *, username):
 # This runs the bot, with secret bot token, very important! This will need to be kept alive and running on server
 #signal.signal(signal.SIGINT, signal_handler)
 scheduler.start()
-scheduler.add_job(clear_and_archive_playlist, args=[sp, 'lacreme monthly', True], trigger='interval', seconds=30)    # clear lacreme playlist every 30 seconds (testing purposes)
+#scheduler.add_job(clear_and_archive_playlist, args=[sp, 'lacreme monthly', True], trigger='interval', seconds=30)    # clear lacreme playlist every 30 seconds (testing purposes)
 client.run(bot_token)
