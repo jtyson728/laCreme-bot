@@ -46,6 +46,7 @@ def add_songs_to_playlist(sp, tracks_to_add, channel_name):
     sp.playlist_add_items(add_id, tracks_to_add)
 
 def clear_and_archive_playlist(sp, channel_name, archive):
+  print(channel_name)
   playlist_id = get_existing_playlist_id(sp, channel_name)
   track_ids = get_playlist_songs(sp, playlist_id)
   if(track_ids):

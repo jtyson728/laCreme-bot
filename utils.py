@@ -20,6 +20,12 @@ def split_music_message(msg):
     description = ''
   return link, description
 
+async def is_valid_username(ctx, username):
+  async for member in ctx.guild.fetch_members(limit=None):
+    print(member.name)
+    if username == member.name:
+      return True
+  return False
 def last_month_user_metrics(user):
   return user
 
