@@ -62,7 +62,8 @@ def add_songs_to_playlist(sp, tracks_to_add, channel_name):
     present_songs = get_playlist_songs(sp, add_id)
     if(len(present_songs) > 0):
       tracks_to_add = [track for track in tracks_to_add if track not in present_songs]
-    sp.playlist_add_items(add_id, tracks_to_add)
+    if(not len(tracks_to_add) == 0):
+      sp.playlist_add_items(add_id, tracks_to_add)
   else:                                               # if it doesn't exist, create playlist, then get its id, then add songs to that playlist
     create_playlist(sp, spotify_username, channel_name)
     add_id = get_existing_playlist_id(sp, channel_name)

@@ -46,7 +46,7 @@ class Musik(commands.Cog):
         print(f'Playlist Songs: {playlist_songs}')
         duplicates = check_duplicates(sp, playlist_songs)
         if(len(duplicates) > 0):
-          await message.channel.send(f"You posted duplicate songs. {len(duplicates)} Post anyways? (y/n)", delete_after=10)
+          await message.channel.send(f"Amore mio— I regret to inform another member of our lucious community has posted that hot shit {duplicates} in a  previous creme. To keep things fresh and giggly  we ask that you swap it out for something new. Do you baby. Thank you one million times.", delete_after=10)
         add_songs_to_playlist(sp, playlist_songs, f'{message.channel.name} weekly')
         add_songs_to_playlist(sp, playlist_songs, f'{message.author.name}')
     else:
