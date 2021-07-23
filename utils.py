@@ -1,8 +1,11 @@
 import apscheduler
 import discord
+import os
 from discord.ext import commands, tasks
 import requests
 import json
+
+admins = os.environ['ADMINS']
 
 class Post:
   def __init__(self, name, time_posted, author):
@@ -26,6 +29,10 @@ async def is_valid_username(ctx, username):
     if username == member.name:
       return True
   return False
+
 def last_month_user_metrics(user):
   return user
+
+def is_admin(ctx):
+  return ctx.author.name in admins
 

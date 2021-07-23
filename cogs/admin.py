@@ -5,7 +5,7 @@ import spotipy
 import apscheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from spotipy.oauth2 import SpotifyOAuth
-from discord.ext import commands
+from discord.ext import commands, tasks
 from utils import *
 from spot_utils import *
 sys.path.append(os.path.abspath('../'))
@@ -24,24 +24,41 @@ class Admin(commands.Cog):
         await ctx.send('You cannot clear an archive')
     else:
       await ctx.send(f'You do not have admin permissions to run this command')
+
+  @commands.command()
+  async def scan(self, ctx):
+    if(ctx.author.name in admins):
+      this_guild=ctx.message.guild
+      for channel in this_guild.text_channels:
+        print(f'Channel name: {channel.name} Channel ID: {channel.id}')
+        all_messages = await channel.history().flatten()
+        for post in all_messages:
+          if post.content.startswith('https://open.spotify.com'):
+            link,description = split_music_message(post.content)
+            playlist_songs = get_playlist_songs(sp, link)
+            add_songs_to_playlist(sp, playlist_songs, f'{post.channel.name} archive')
+            add_songs_to_playlist(sp, playlist_songs, f'{post.author.name}')
+    else:
+      await ctx.send(f'You do not have admin permissions to run this command')
+
   
   @commands.command(aliases=['metrics'])
   async def stats(self, ctx, *, username=None):
-    admin_channel = self.client.get_channel(862504774887669770)
+    admin_channel = discord.utils.get(ctx.guild.channels, name='admin').id
+    loosie_category = discord.utils.get(ctx.guild.channels, name='loosies').id
     creme_count = 0
     loosie_count = 0
     gen_count = 0
     creme_posts = []
     loosie_posts = []
-    if(ctx.author.name in admins):
+    if(is_admin):
       if username:
         if(await is_valid_username(ctx, username)):
-
           await ctx.send(f'Stats of: {username}')
           this_guild=ctx.message.guild
           for channel in this_guild.text_channels:
             print(f'Channel name: {channel.name} Channel ID: {channel.id}')
-            if channel.category_id == 863860603704573983:    #loosies category
+            if channel.category_id == loosie_category:
               print(channel.name)
               loosies = await channel.history(limit=1000).flatten()
               for post in loosies:
@@ -51,10 +68,7 @@ class Admin(commands.Cog):
                     loosie_count +=1
                     loosie_posts.append(post)  
                     gen_count -=1
-              #items = await channel.history(limit=1000).filter(lambda x: x.author.name == username and x.content.startswith('https://open.spotify.com')).flatten()
-              # print(len(items))
-              # loosie_count+=len(items)
-              # loosie_posts.append(items)       
+              #items = await channel.history(limit=1000).filter(lambda x: x.author.name == username and x.content.startswith('https://open.spotify.com')).flatten()   
             elif channel.name == 'lacreme':
               cremes = await channel.history(limit=1000).flatten()
               for post in cremes:
