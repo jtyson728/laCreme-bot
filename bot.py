@@ -3,12 +3,15 @@ import signal
 import sys
 import discord
 from discord.ext import commands, tasks
+from discord.ext.commands import CommandNotFound
 import spotipy
 import apscheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
+import datetime
+from time import sleep
 from utils import *
 from spot_utils import *
 
@@ -25,74 +28,122 @@ job_defaults = {'max_instances':3}
 scheduler = BackgroundScheduler(daemon=True, job_defaults=job_defaults)
 
 #discord bot credentials (ask Jeremy for environment keys) and create a discord client connection
+intents = discord.Intents.default()
+intents.members = True
 bot_token = os.environ['TOKEN']
-client = commands.Bot(command_prefix='$')
+client = commands.Bot(command_prefix='$', intents=intents)
 
 # puts credentials for Jeremys account into SpotifyOAuth and initiate spotify connection instance
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
 sp = spotipy.Spotify(auth_manager=spot_token)
 
+@client.command()
+async def load(ctx, extension):
+  if(is_admin(ctx)):
+    client.load_extension(f'cogs.{extension}')
+    print('Loaded {extension}')
+
+@client.command()
+async def unload(ctx, extension):
+  if(is_admin(ctx)):
+    client.unload_extension(f'cogs.{extension}')
+    print('Unloaded {extension}')
+
+@client.command()
+async def reload(ctx, extension):
+  if(is_admin(ctx)):
+    client.unload_extension(f'cogs.{extension}')
+    client.load_extension(f'cogs.{extension}')
+    print('Reloaded {extension}')
+
+for filename in os.listdir('./cogs'):
+  if filename.endswith('.py'):
+    client.load_extension(f'cogs.{filename[:-3]}')
 
 #notification that bot is logged in when bot is first started
 @client.event
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
+  clear_weekly.start()
 
-#this is event for when a message is posted to the server that the bot is in
 @client.event
-async def on_message(message):
-  # if the message came from the bot itself, then ignore it
-  if message.author == client.user:
-    return
-  msg = message.content
-
-  if msg.startswith('https://open.spotify.com'):
-    #await message.channel.send(f'{message.author.name} just uploaded some new creme')
-    link, description = split_music_message(msg)
-    playlist_songs = get_playlist_songs(sp, link)
-    if (message.channel.name == 'lacreme' and len(playlist_songs) > 5):        # if lacreme playlist, make sure user only posted max 5 songs to add
-      await message.channel.send('**ALERT** Please repost a playlist with 5 or less songs', delete_after=30.0)
-      if description != '':
-        await message.channel.send(f'Here is your description to copy, this message will delete after 60 seconds: \n{description}', delete_after=60.0)
-      await message.delete()
-
-    else:
-      print(f'Playlist Songs: {playlist_songs}')
-      add_songs_to_playlist(sp, playlist_songs, f'{message.channel.name} monthly')
-  else:
-    if any(mention.name == 'SonOfGloin' for mention in message.mentions):
-      await message.channel.send('**ALERT** Tommy is a very stinky boy', delete_after=10.0)
-  await client.process_commands(message)
-
-@client.command(aliases=['admin', 'metrics'])
-async def stats(ctx, *, username):
-  await ctx.send(f'Stats of: {username}')
-  print("This function ran")
-
-@client.command()
-async def clear(ctx, *, playlist_name):
-  if(ctx.author.name in admins):
-    clear_and_archive_playlist(sp, playlist_name, False)
-  else:
-    await ctx.send(f'You do not have admin permissions to run this command')
+async def on_command_error(ctx, error):
+    if isinstance(error, CommandNotFound):
+      em = discord.Embed(title=f"Error!!!", description=f"Command not found.", color=ctx.author.color) 
+      await ctx.send(embed=em)
+      return
+    raise error
 
 @client.command()
 async def posts_by(ctx, *, username):
-  #channel = client.get_channel(730839966472601622)
-  messages = await ctx.channel.history(oldest_first=True, limit=500).flatten()
-  posts_list = []
-  for msg in messages:
-    if msg.author.name == username and msg.content.startswith('https://open.spotify.com'):
-      link, description = split_music_message(msg.content)
-      posts_list.append(link)
-  print(posts_list)
+  if(await is_valid_username(ctx, username)):
+    messages = await ctx.channel.history(oldest_first=False, limit=500).flatten()
+    posts_list = []
+    for msg in messages:
+      if msg.author.name == username and msg.content.startswith('https://open.spotify.com'):
+        link, description = split_music_message(msg.content)
+        posts_list.append(link)
+    print(posts_list)
 
+@client.command()
+async def idle_alerts(ctx):
+  refresh_time_first = datetime.timedelta(days=13) # time to first reminder message
+  refresh_time_second = datetime.timedelta(days=17) # time to second reminder message
+  first_message = [] # list will contain user ids to send first message
+  second_message = [] # list will contain user ids to send second message
+  history_limit = 200 # number of messages grabbed in reverse chron order
+  laCreme = discord.utils.get(ctx.guild.channels, name='lacreme') # discord channel object
+  member_ids=[] # will contain all member ids in channel
+  members=ctx.guild.members # grab channel members
+  messages = await laCreme.history(limit=history_limit).flatten() # grab message history
 
-# def signal_handler(sig, frame):
-#   scheduler.shutdown(wait=False)
+  # add member ids to member_ids
+  for member in members: 
+    member_ids.append(member.id)
+  # if more than history_limit number of messages have transpired between refresh_time_second, grab more messages.
+  # history_limit should change accordingly so this rarely happens
+  if messages:
+    i=2
+    while messages[-1].created_at>(datetime.datetime.utcnow()-refresh_time_second):
+      messages = await laCreme.history(limit=history_limit*i).flatten()
+      i+=1
 
-# This runs the bot, with secret bot token, very important! This will need to be kept alive and running on server
-#signal.signal(signal.SIGINT, signal_handler)
-scheduler.start()
-scheduler.add_job(clear_and_archive_playlist, args=[sp, 'lacreme monthly', True], trigger='interval', seconds=30)    # clear lacreme playlist every 30 seconds (testing purposes)
+  j=0
+  while member_ids and j<len(messages):
+    # if user posted in time between check and refresh_time_first days ago, remove them from list
+    if messages[j].created_at > (datetime.datetime.utcnow()-refresh_time_first):
+      if messages[j].author.id in member_ids:
+        member_ids.remove(messages[j].author.id)
+
+    # if user posted refresh_time_first days ago, add them to list to receive first message
+    if (datetime.datetime.utcnow()-refresh_time_first - datetime.timedelta(days=1)) < messages[j].created_at < (datetime.datetime.utcnow()-refresh_time_first):
+      if messages[j].author.id in member_ids:
+        member_ids.remove(messages[j].author.id)
+        first_message.append(messages[j].author.id)
+
+    # if user posted refresh_time_second days ago, add them to list to receive second message
+    if (datetime.datetime.utcnow()-refresh_time_second - datetime.timedelta(days=1)) < messages[j].created_at < (datetime.datetime.utcnow()-refresh_time_second):
+      if messages[j].author.id in member_ids:
+        member_ids.remove(messages[j].author.id)
+        second_message.append(messages[j].author.id)
+    j+=1
+
+  # send first message to users in first_message list
+  for id in first_message:
+    curr_user = client.get_user(id)
+    if curr_user.bot == False:
+      await curr_user.send(f"Hola non-gendered papacan. We (tommy) has been crying every night missing out on your unique taste in tunes. It's been {refresh_time_first.days} days since you last posted, oh my gad, oh my gad. Just a genteel reminder to drop some heat in #lacreme. Much love. Thank you kindly.")
+
+  # send second message to users in second_message list
+  for id in second_message:
+    curr_user = client.get_user(id)
+    if curr_user.bot == False:
+      await curr_user.send(f"Hey, sugar. We talked a few days ago about puttiing a lil something something in #lacreme , and I wanted choose love before I choose violence. I know you're busy, but it would mean a lot to us. ciao bello.")
+
+@tasks.loop(seconds=120)
+async def clear_weekly():
+  weekly_ids, weekly_names = get_all_playlists_with_name(sp, 'weekly')
+  for weekly in weekly_names:
+    clear_and_archive_playlist(sp, weekly, True)
+
 client.run(bot_token)
