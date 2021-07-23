@@ -2,6 +2,7 @@
 *venv
 */__pycache__
 .cache-12141073399
-*.pyc
+.cache-1224462396
 .cache-2nabjxmkmltb9rjkwetfd6uzs
 *.env
+
