@@ -1,6 +1,7 @@
 import sys, os.path
 import os
 import discord
+from datetime import datetime, timedelta
 import spotipy
 import apscheduler
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -41,10 +42,12 @@ class Admin(commands.Cog):
     else:
       await ctx.send(f'You do not have admin permissions to run this command')
 
-  
+  #return user message stats for last month
   @commands.command(aliases=['metrics'])
   async def stats(self, ctx, *, username=None):
-    admin_channel = discord.utils.get(ctx.guild.channels, name='admin').id
+    last_month = datetime.now() - timedelta(days=30)
+    admin_channel_id = discord.utils.get(ctx.guild.channels, name='admin').id
+    admin_channel = self.client.get_channel(admin_channel_id)
     loosie_category = discord.utils.get(ctx.guild.channels, name='loosies').id
     creme_count = 0
     loosie_count = 0
@@ -57,10 +60,8 @@ class Admin(commands.Cog):
           await ctx.send(f'Stats of: {username}')
           this_guild=ctx.message.guild
           for channel in this_guild.text_channels:
-            print(f'Channel name: {channel.name} Channel ID: {channel.id}')
             if channel.category_id == loosie_category:
-              print(channel.name)
-              loosies = await channel.history(limit=1000).flatten()
+              loosies = await channel.history(limit=None, after=last_month).flatten()
               for post in loosies:
                 if post.author.name == username:
                   gen_count +=1
@@ -70,7 +71,7 @@ class Admin(commands.Cog):
                     gen_count -=1
               #items = await channel.history(limit=1000).filter(lambda x: x.author.name == username and x.content.startswith('https://open.spotify.com')).flatten()   
             elif channel.name == 'lacreme':
-              cremes = await channel.history(limit=1000).flatten()
+              cremes = await channel.history(limit=None, after=last_month).flatten()
               for post in cremes:
                 if post.author.name == username:
                   gen_count +=1
@@ -80,14 +81,11 @@ class Admin(commands.Cog):
                     gen_count -=1
               #creme_posts = await channel.history(limit=1000).filter(lambda x: x.author.name == username and x.content.startswith('https://open.spotify.com')).flatten()
             else:
-              others = await channel.history(limit=1000).flatten()
+              others = await channel.history(limit=None, after=last_month).flatten()
               for post in others:
                 if post.author.name == username:
                   gen_count +=1
           creme_count = len(creme_posts)
-          print(f'Creme Count: {creme_count}')
-          #loosie_count = len(loosie_posts)
-          print(f'Loosie Count: {loosie_count}')
           await admin_channel.send(f'Creme Count: {creme_count} \n Loosie Count: {loosie_count}\n General Messages: {gen_count}')
       else:
         print('general stats go here')

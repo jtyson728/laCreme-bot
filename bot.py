@@ -2,6 +2,7 @@ import os
 import signal
 import sys
 import discord
+import logging
 from discord.ext import commands, tasks
 from discord.ext.commands import CommandNotFound
 import spotipy
@@ -33,22 +34,32 @@ intents.members = True
 bot_token = os.environ['TOKEN']
 client = commands.Bot(command_prefix='$', intents=intents)
 
+# this chunk intializes a logger to print to log file
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler(filename='laCreme.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
 # puts credentials for Jeremys account into SpotifyOAuth and initiate spotify connection instance
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
 sp = spotipy.Spotify(auth_manager=spot_token)
 
+# load cog (activate it on bot)
 @client.command()
 async def load(ctx, extension):
   if(is_admin(ctx)):
     client.load_extension(f'cogs.{extension}')
     print('Loaded {extension}')
 
+# unload cog (deactivate it from bot)
 @client.command()
 async def unload(ctx, extension):
   if(is_admin(ctx)):
     client.unload_extension(f'cogs.{extension}')
     print('Unloaded {extension}')
 
+# unloads then loads cog
 @client.command()
 async def reload(ctx, extension):
   if(is_admin(ctx)):
@@ -56,11 +67,12 @@ async def reload(ctx, extension):
     client.load_extension(f'cogs.{extension}')
     print('Reloaded {extension}')
 
+# runs once when bot is first ran. goes thru cogs folder and loads them all up
 for filename in os.listdir('./cogs'):
   if filename.endswith('.py'):
     client.load_extension(f'cogs.{filename[:-3]}')
 
-#notification that bot is logged in when bot is first started
+# (sanity check) notification that bot is logged in when bot is first started
 @client.event
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
