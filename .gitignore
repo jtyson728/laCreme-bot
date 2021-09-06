@@ -6,3 +6,6 @@
 .cache-2nabjxmkmltb9rjkwetfd6uzs
 *.env
 __pycache__/
+*.pyc
+*.pyo
+*.log

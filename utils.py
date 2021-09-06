@@ -23,16 +23,29 @@ def split_music_message(msg):
     description = ''
   return link, description
 
+# checks if input username exists in the server
 async def is_valid_username(ctx, username):
   async for member in ctx.guild.fetch_members(limit=None):
-    print(member.name)
     if username == member.name:
       return True
   return False
 
-def last_month_user_metrics(user):
-  return user
+# returns list of all members in server
+async def get_all_members(message):
+  members = []
+  async for member in message.guild.fetch_members(limit=None):
+    members.append(member)
+  return members
 
+# takes in string username and returns member object
+async def get_member(ctx, username):
+  async for member in ctx.guild.fetch_members(limit=None):
+    print(member.name)
+    if username == member.name:
+      return member
+  return ''
+
+# check to see if calling author of command message is an admin
 def is_admin(ctx):
   return ctx.author.name in admins
 
