@@ -5,7 +5,7 @@
 .cache-1224462396
 .cache-2nabjxmkmltb9rjkwetfd6uzs
 *.env
+__pycache__/
 *.pyc
 *.pyo
 *.log
-

@@ -23,6 +23,7 @@ scope = "playlist-modify-public user-library-read user-modify-playback-state"
 redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
 spotify_username = os.environ['SPOT_USERNAME']
 admins = os.environ['ADMINS']
+laCreme_bot_test_id = 859275367712555029
 
 # create apscheduler object
 job_defaults = {'max_instances':3}
@@ -77,6 +78,7 @@ for filename in os.listdir('./cogs'):
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
   clear_weekly.start()
+  idle_alerts.start(laCreme_bot_test_id)
 
 @client.event
 async def on_command_error(ctx, error):
@@ -97,60 +99,40 @@ async def posts_by(ctx, *, username):
         posts_list.append(link)
     print(posts_list)
 
-@client.command()
-async def idle_alerts(ctx):
+# @client.command()
+@tasks.loop(hours=24)
+async def idle_alerts(guild_id):
+  print("sending idle alerts...")
+  guild = client.get_guild(guild_id)
   refresh_time_first = datetime.timedelta(days=13) # time to first reminder message
   refresh_time_second = datetime.timedelta(days=17) # time to second reminder message
-  first_message = [] # list will contain user ids to send first message
-  second_message = [] # list will contain user ids to send second message
-  history_limit = 200 # number of messages grabbed in reverse chron order
-  laCreme = discord.utils.get(ctx.guild.channels, name='lacreme') # discord channel object
-  member_ids=[] # will contain all member ids in channel
-  members=ctx.guild.members # grab channel members
-  messages = await laCreme.history(limit=history_limit).flatten() # grab message history
+  first_message = f"Hola non-gendered papacan. We (tommy) has been crying every night missing out on your unique taste in tunes. It's been {refresh_time_first.days} days since you last posted, oh my gad, oh my gad. Just a genteel reminder to drop some heat in #lacreme. Much love. Thank you kindly."
+  second_message = "Hey, sugar. We talked a few days ago about puttiing a lil something something in #lacreme , and I wanted choose love before I choose violence. I know you're busy, but it would mean a lot to us. ciao bello."
+  members = guild.members # members in guild
+  channels = guild.text_channels # text channenls in guild
 
-  # add member ids to member_ids
-  for member in members: 
-    member_ids.append(member.id)
-  # if more than history_limit number of messages have transpired between refresh_time_second, grab more messages.
-  # history_limit should change accordingly so this rarely happens
-  if messages:
-    i=2
-    while messages[-1].created_at>(datetime.datetime.utcnow()-refresh_time_second):
-      messages = await laCreme.history(limit=history_limit*i).flatten()
-      i+=1
 
-  j=0
-  while member_ids and j<len(messages):
-    # if user posted in time between check and refresh_time_first days ago, remove them from list
-    if messages[j].created_at > (datetime.datetime.utcnow()-refresh_time_first):
-      if messages[j].author.id in member_ids:
-        member_ids.remove(messages[j].author.id)
+  for member in members:
+    timeStamps = [] # initialize time stamps for each user message
+    for channel in channels:
+      msg = await channel.history().get(author__id=member.id) # get last user message in each text channel
+      if msg: # filter out None
+        if msg.created_at > (datetime.datetime.utcnow()-refresh_time_first): # if user posted within first refresh time, break loop, get rid of timestamps
+          timeStamps=[]
+          break
+        timeStamps.append(msg.created_at)
+    if timeStamps: # remove users who never posted or who have posted within first refresh time
+      timeStamps.sort() # most recent post at end of array
+      if (datetime.datetime.utcnow()-refresh_time_first - datetime.timedelta(days=1)) < timeStamps[-1] < (datetime.datetime.utcnow()-refresh_time_first):
+        if member.bot == False:
+          await member.send(first_message) # DM first message
+      elif (datetime.datetime.utcnow()-refresh_time_second - datetime.timedelta(days=1)) < timeStamps[-1] < (datetime.datetime.utcnow()-refresh_time_second):
+        if member.bot == False:
+          await member.send(second_message) # DM second message
 
-    # if user posted refresh_time_first days ago, add them to list to receive first message
-    if (datetime.datetime.utcnow()-refresh_time_first - datetime.timedelta(days=1)) < messages[j].created_at < (datetime.datetime.utcnow()-refresh_time_first):
-      if messages[j].author.id in member_ids:
-        member_ids.remove(messages[j].author.id)
-        first_message.append(messages[j].author.id)
 
-    # if user posted refresh_time_second days ago, add them to list to receive second message
-    if (datetime.datetime.utcnow()-refresh_time_second - datetime.timedelta(days=1)) < messages[j].created_at < (datetime.datetime.utcnow()-refresh_time_second):
-      if messages[j].author.id in member_ids:
-        member_ids.remove(messages[j].author.id)
-        second_message.append(messages[j].author.id)
-    j+=1
 
-  # send first message to users in first_message list
-  for id in first_message:
-    curr_user = client.get_user(id)
-    if curr_user.bot == False:
-      await curr_user.send(f"Hola non-gendered papacan. We (tommy) has been crying every night missing out on your unique taste in tunes. It's been {refresh_time_first.days} days since you last posted, oh my gad, oh my gad. Just a genteel reminder to drop some heat in #lacreme. Much love. Thank you kindly.")
 
-  # send second message to users in second_message list
-  for id in second_message:
-    curr_user = client.get_user(id)
-    if curr_user.bot == False:
-      await curr_user.send(f"Hey, sugar. We talked a few days ago about puttiing a lil something something in #lacreme , and I wanted choose love before I choose violence. I know you're busy, but it would mean a lot to us. ciao bello.")
 
 @tasks.loop(seconds=120)
 async def clear_weekly():
