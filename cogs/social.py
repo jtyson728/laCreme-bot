@@ -2,7 +2,6 @@ import sys, os.path
 import os
 import discord
 from datetime import datetime 
-from statistics import median
 import spotipy
 import apscheduler
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -32,6 +31,7 @@ class Social(commands.Cog):
   async def taste(self, ctx, username):
     #user = get_member(ctx, username)
     #user = ctx.author
+    profiles_channel = discord.utils.get(ctx.guild.channels, name='profiles').id
     user = discord.utils.get(self.client.get_all_members(), name=username)
     years = []
     existing_playlists = sp.user_playlists(spotify_username)

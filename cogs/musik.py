@@ -27,7 +27,7 @@ class Musik(commands.Cog):
     msg = message.content
     def check(msg):
       return msg.author == message.author and msg.channel == message.channel
-    if msg.startswith('https://open.spotify.com'):
+    if ('https://open.spotify.com') in msg:
       link, description = split_music_message(msg)
       playlist_songs= get_playlist_songs(sp, link)
       # if lacreme playlist, make sure user only posted max 5 songs to add
@@ -54,6 +54,7 @@ class Musik(commands.Cog):
         # matches = artist_chat_up(sp, playlist_artists, members)
         add_songs_to_playlist(sp, playlist_songs, f'{message.channel.name} weekly')
         add_songs_to_playlist(sp, playlist_songs, f'{message.author.name}')
+        await update_profile(sp, message.author.name, message)
     else:
       if any(mention.name == 'SonOfGloin' for mention in message.mentions):
         await message.channel.send('**ALERT** Tommy is a very, very stinky boy', delete_after=5.0)

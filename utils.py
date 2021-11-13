@@ -16,8 +16,15 @@ class Post:
 # splits message into 2 parts: playlist link, and their description for the playlist
 def split_music_message(msg):
   if len(msg.split()) > 1:
-    link = msg.split()[0]
-    description = msg.split(None, 1)[1]
+    if msg.startswith('https://open.spotify.com'):
+      link = msg.split()[0]
+      description = msg.split(None, 1)[1]
+    else:
+      link_index = msg.index('https')
+      description = msg[:link_index]
+      link = msg[link_index:]
+    print(f'This is the link: {link}')
+    print(f'This is the description: {description}')
   else:
     link = msg
     description = ''

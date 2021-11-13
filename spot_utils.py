@@ -1,11 +1,14 @@
 #want to add all spotify actions in this file
 import os
 import spotipy
+import discord
 import apscheduler
 from datetime import datetime
+from spotipy.exceptions import SpotifyException
 from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
+from statistics import median
 
 spotify_username = os.environ['SPOT_USERNAME']
 
@@ -19,32 +22,47 @@ def get_playlist_info(sp, link):
   offset = 0
   response = sp.playlist_items(playlist_id,
                               offset=offset,
-                              fields='items.track.id,total,items.track.name,items.track.artists.name, items.track.album.release_date',
+                              fields='items.track.id,total,items.track.name,items.track.artists.name,items.track.artists.external_urls,items.track.album.release_date',
                               additional_types=['track'])
   if len(response['items']) == 0:
     return track_ids_list
-  #print(json.dumps(results, indent=4))
+  genre_count = dict()
   for item in response['items']:
+    artist = sp.artist(item['track']["artists"][0]["external_urls"]["spotify"])
+    for i in artist['genres']:
+      genre_count[i] = genre_count.get(i, 0) + 1
     track_ids_list.append(item['track']['id'])
     artists.append(item['track']['artists'][0]['name'])
-    release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y-%m-%d').year))  
+    try:
+      release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y-%m-%d').year))
+    except ValueError as ve:
+      try:
+        release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y').year))
+      except ValueError as ee:
+        continue
   # features = sp.audio_features(track_ids_list[0])
   # print(json.dumps(features, indent=4))
-  return track_ids_list, artists, release_years
+  return track_ids_list, artists, release_years, genre_count
 
 
 def get_playlist_songs(sp, link):
   track_ids_list = []
   playlist_id = link
   offset = 0
-  response = sp.playlist_items(playlist_id,
-                              offset=offset,
-                              fields='items.track.id,total',
-                              additional_types=['track'])
-  if len(response['items']) == 0:
+  try:
+    response = sp.playlist_items(playlist_id,
+                                offset=offset,
+                                fields='items.track.id,total',
+                                additional_types=['track'])
+
+    if len(response['items']) == 0:
       return track_ids_list
-  for item in response['items']:
-    track_ids_list.append(item['track']['id'])
+    for item in response['items']:
+      track_ids_list.append(item['track']['id'])
+  except SpotifyException as e:
+    response = sp.track(playlist_id)
+    track_ids_list.append(response['id'])
+  
   return track_ids_list
 
 def add_songs_to_playlist(sp, tracks_to_add, channel_name):
@@ -79,8 +97,8 @@ def check_duplicates(sp, songs):
     if 'archive' in playlist['name'] or 'weekly' in playlist['name']:
       tracklist = get_playlist_songs(sp, playlist['id'])
       if(len(tracklist) > 0):
-        duplicates = duplicates | set(songs).intersection(tracklist) 
-  return duplicates
+        duplicates = duplicates | set(songs).intersection(tracklist)
+  return [sp.track(dupe)['name'] for dupe in duplicates]
 
 def get_all_playlists_with_name(sp, name):
   playlist_ids = []
@@ -89,17 +107,16 @@ def get_all_playlists_with_name(sp, name):
   for playlist in existing_playlists['items']:
     if name in playlist['name']:
       playlist_ids.append(playlist['id'])
-      playlist_ids.append(playlist['name'])
+      playlist_names.append(playlist['name'])
   return playlist_ids, playlist_names
 
-def clear_and_archive_playlist(sp, channel_name, archive):
-  print(channel_name)
-  playlist_id = get_existing_playlist_id(sp, channel_name)
-  track_ids = get_playlist_songs(sp, playlist_id)
+def clear_and_archive_playlist(sp, weekly_id, weekly_name, archive):
+  print(weekly_name)
+  track_ids = get_playlist_songs(sp, weekly_id)
   if(track_ids):
-    results = sp.playlist_remove_all_occurrences_of_items(playlist_id, track_ids)
+    results = sp.playlist_remove_all_occurrences_of_items(weekly_id, track_ids)
     if archive:
-      add_songs_to_playlist(sp, track_ids, f'{channel_name.split()[0]} archive')
+      add_songs_to_playlist(sp, track_ids, f'{weekly_name.split()[0]} archive')
   else:
     print('Playlist already empty!!!!')
 
@@ -108,5 +125,41 @@ def clear_and_archive_playlist(sp, channel_name, archive):
 def artist_chat_up(sp, artists, members):
   for member in members:
     print(member)
+
+async def update_profile(sp, username, message):  
+  #user = discord.utils.get(message.guild.get_all_members(), name=username)
+  user = message.author
+  profiles_channel = discord.utils.get(message.guild.channels, name='profiles')
+  all_profiles = await profiles_channel.history().flatten()
+  message_to_update = None
+
+  for message in all_profiles:
+    if len(message.embeds) > 0 and message.embeds[0].title == username:
+      message_to_update = message
+      break
+
+  years = []
+  existing_playlists = sp.user_playlists(spotify_username)
+  for playlist in existing_playlists['items']:
+    if playlist['name'] == username:
+      print(playlist['external_urls'])
+      tracklist, artists, years, genre_count = get_playlist_info(sp, playlist['id'])
+      top_3_genres = ','.join(sorted(genre_count, key=genre_count.get, reverse=True)[:3])
+      playlist_link = playlist['external_urls']['spotify']
+      time_period = median(years)
+      embed = discord.Embed(
+        title = username,
+        description = playlist_link,
+        colour = discord.Colour.random()
+      )
+      embed.set_thumbnail(url = user.avatar_url)
+      embed.add_field(name='Median time period', value=time_period, inline=True)
+      embed.add_field(name='Goes by', value=user.nick, inline=True)
+      embed.add_field(name='Top 3 Genres', value=top_3_genres, inline=False)
+      
+      if not message_to_update:
+        await profiles_channel.send(embed=embed)
+      else:
+        await message_to_update.edit(embed=embed)
 
 

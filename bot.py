@@ -11,7 +11,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
-import datetime
+from datetime import datetime, timedelta
 from time import sleep
 from utils import *
 from spot_utils import *
@@ -88,26 +88,14 @@ async def on_command_error(ctx, error):
       return
     raise error
 
-@client.command()
-async def posts_by(ctx, *, username):
-  if(await is_valid_username(ctx, username)):
-    messages = await ctx.channel.history(oldest_first=False, limit=500).flatten()
-    posts_list = []
-    for msg in messages:
-      if msg.author.name == username and msg.content.startswith('https://open.spotify.com'):
-        link, description = split_music_message(msg.content)
-        posts_list.append(link)
-    print(posts_list)
-
-# @client.command()
 @tasks.loop(hours=24)
 async def idle_alerts(guild_id):
   print("sending idle alerts...")
   guild = client.get_guild(guild_id)
-  refresh_time_first = datetime.timedelta(days=13) # time to first reminder message
-  refresh_time_second = datetime.timedelta(days=17) # time to second reminder message
+  refresh_time_first = timedelta(days=13) # time to first reminder message
+  refresh_time_second = timedelta(days=17) # time to second reminder message
   first_message = f"Hola non-gendered papacan. We (tommy) has been crying every night missing out on your unique taste in tunes. It's been {refresh_time_first.days} days since you last posted, oh my gad, oh my gad. Just a genteel reminder to drop some heat in #lacreme. Much love. Thank you kindly."
-  second_message = "Hey, sugar. We talked a few days ago about puttiing a lil something something in #lacreme , and I wanted choose love before I choose violence. I know you're busy, but it would mean a lot to us. ciao bello."
+  second_message = "Hey, sugar. We talked a few days ago about puttiing a lil something something in #lacreme , and I wanted to choose love before I choose violence. I know you're busy, but it would mean a lot to us. ciao bello."
   members = guild.members # members in guild
   channels = guild.text_channels # text channenls in guild
 
@@ -117,27 +105,23 @@ async def idle_alerts(guild_id):
     for channel in channels:
       msg = await channel.history().get(author__id=member.id) # get last user message in each text channel
       if msg: # filter out None
-        if msg.created_at > (datetime.datetime.utcnow()-refresh_time_first): # if user posted within first refresh time, break loop, get rid of timestamps
+        if msg.created_at > (datetime.utcnow()-refresh_time_first): # if user posted within first refresh time, break loop, get rid of timestamps
           timeStamps=[]
           break
         timeStamps.append(msg.created_at)
     if timeStamps: # remove users who never posted or who have posted within first refresh time
       timeStamps.sort() # most recent post at end of array
-      if (datetime.datetime.utcnow()-refresh_time_first - datetime.timedelta(days=1)) < timeStamps[-1] < (datetime.datetime.utcnow()-refresh_time_first):
+      if (datetime.utcnow()-refresh_time_first - timedelta(days=1)) < timeStamps[-1] < (datetime.utcnow()-refresh_time_first):
         if member.bot == False:
           await member.send(first_message) # DM first message
-      elif (datetime.datetime.utcnow()-refresh_time_second - datetime.timedelta(days=1)) < timeStamps[-1] < (datetime.datetime.utcnow()-refresh_time_second):
+      elif (datetime.utcnow()-refresh_time_second - timedelta(days=1)) < timeStamps[-1] < (datetime.utcnow()-refresh_time_second):
         if member.bot == False:
           await member.send(second_message) # DM second message
-
-
-
-
 
 @tasks.loop(seconds=120)
 async def clear_weekly():
   weekly_ids, weekly_names = get_all_playlists_with_name(sp, 'weekly')
-  for weekly in weekly_names:
-    clear_and_archive_playlist(sp, weekly, True)
+  for weekly_id, weekly_name in zip(weekly_ids,weekly_names):
+    clear_and_archive_playlist(sp, weekly_id, weekly_name, True)
 
 client.run(bot_token)
