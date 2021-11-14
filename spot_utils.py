@@ -9,6 +9,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import requests
 import json
 from statistics import median
+from collections import defaultdict
 
 spotify_username = os.environ['SPOT_USERNAME']
 
@@ -81,7 +82,6 @@ def add_songs_to_playlist(sp, tracks_to_add, channel_name):
     add_id = get_existing_playlist_id(sp, channel_name)
     sp.playlist_add_items(add_id, tracks_to_add)
 
-# currently, this looks for playlists with the channel name and 'monthly' at the end
 def get_existing_playlist_id(sp, channel_name):
   existing_playlists = sp.user_playlists(spotify_username)
   for playlist in existing_playlists['items']:
@@ -89,22 +89,35 @@ def get_existing_playlist_id(sp, channel_name):
       return playlist['id']
   return None
 
+def get_existing_playlist_object(sp, channel_name):
+  existing_playlists = sp.user_playlists(spotify_username)
+  for playlist in existing_playlists['items']:
+    if playlist['name'] == channel_name:
+      return playlist
+  return None
+
 def check_duplicates(sp, songs):
   playlists = []
   duplicates = set()
+  users_who_already_posted = defaultdict(list)
   existing_playlists = sp.user_playlists(spotify_username)
   for playlist in existing_playlists['items']:
-    if 'archive' in playlist['name'] or 'weekly' in playlist['name']:
+    if 'archive' not in playlist['name'] and 'weekly' not in playlist['name']:
       tracklist = get_playlist_songs(sp, playlist['id'])
       if(len(tracklist) > 0):
-        duplicates = duplicates | set(songs).intersection(tracklist)
-  return [sp.track(dupe)['name'] for dupe in duplicates]
+        intersections = set(songs).intersection(tracklist)
+        if(len(intersections) > 0):
+          for i in intersections:
+            users_who_already_posted[sp.track(i)['name']].append(playlist['name'])
+        duplicates = duplicates | intersections
+  return [sp.track(dupe)['name'] for dupe in duplicates], users_who_already_posted
 
 def get_all_playlists_with_name(sp, name):
   playlist_ids = []
   playlist_names = []
   existing_playlists = sp.user_playlists(spotify_username)
   for playlist in existing_playlists['items']:
+    print(playlist['name'])
     if name in playlist['name']:
       playlist_ids.append(playlist['id'])
       playlist_names.append(playlist['name'])
@@ -139,27 +152,25 @@ async def update_profile(sp, username, message):
       break
 
   years = []
-  existing_playlists = sp.user_playlists(spotify_username)
-  for playlist in existing_playlists['items']:
-    if playlist['name'] == username:
-      print(playlist['external_urls'])
-      tracklist, artists, years, genre_count = get_playlist_info(sp, playlist['id'])
-      top_3_genres = ','.join(sorted(genre_count, key=genre_count.get, reverse=True)[:3])
-      playlist_link = playlist['external_urls']['spotify']
-      time_period = median(years)
-      embed = discord.Embed(
-        title = username,
-        description = playlist_link,
-        colour = discord.Colour.random()
-      )
-      embed.set_thumbnail(url = user.avatar_url)
-      embed.add_field(name='Median time period', value=time_period, inline=True)
-      embed.add_field(name='Goes by', value=user.nick, inline=True)
-      embed.add_field(name='Top 3 Genres', value=top_3_genres, inline=False)
-      
-      if not message_to_update:
-        await profiles_channel.send(embed=embed)
-      else:
-        await message_to_update.edit(embed=embed)
+  playlist = get_existing_playlist_object(sp, username)
+  if(playlist):
+    tracklist, artists, years, genre_count = get_playlist_info(sp, playlist['id'])
+    top_3_genres = ','.join(sorted(genre_count, key=genre_count.get, reverse=True)[:3])
+    playlist_link = playlist['external_urls']['spotify']
+    time_period = median(years)
+    embed = discord.Embed(
+      title = username,
+      description = f'Link to {user.nick}\'s Tunes: \n {playlist_link}',
+      colour = discord.Colour.random()
+    )
+    embed.set_thumbnail(url = user.avatar_url)
+    embed.add_field(name='Goes by', value=user.nick, inline=True)
+    embed.add_field(name='Median time period', value=time_period, inline=True)
+    embed.add_field(name='Top 3 Genres', value=top_3_genres, inline=False)
+    
+    if not message_to_update:
+      await profiles_channel.send(embed=embed)
+    else:
+      await message_to_update.edit(embed=embed)
 
 
