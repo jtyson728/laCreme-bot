@@ -123,7 +123,6 @@ async def idle_alerts(guild_id):
 async def clear_weekly():
   print(f"Clearing weekly playlists {datetime.utcnow()}")
   weekly_ids, weekly_names = get_all_playlists_with_name(sp, 'weekly')
-  print(weekly_names)
   for weekly_id, weekly_name in zip(weekly_ids,weekly_names):
     clear_and_archive_playlist(sp, weekly_id, weekly_name, True)
 
