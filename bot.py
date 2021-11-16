@@ -24,6 +24,7 @@ redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
 spotify_username = os.environ['SPOT_USERNAME']
 admins = os.environ['ADMINS']
 laCreme_bot_test_id = 859275367712555029
+print(redirect_uri)
 
 # create apscheduler object
 job_defaults = {'max_instances':3}
@@ -44,6 +45,7 @@ logger.addHandler(handler)
 
 # puts credentials for Jeremys account into SpotifyOAuth and initiate spotify connection instance
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
+spotipy_prompt = spot_token.get_access_token()
 sp = spotipy.Spotify(auth_manager=spot_token)
 
 # load cog (activate it on bot)
