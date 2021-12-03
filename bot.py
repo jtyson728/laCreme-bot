@@ -45,7 +45,7 @@ logger.addHandler(handler)
 
 # puts credentials for Jeremys account into SpotifyOAuth and initiate spotify connection instance
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
-spotipy_prompt = spot_token.get_access_token()
+#spotipy_prompt = spot_token.get_access_token()
 sp = spotipy.Spotify(auth_manager=spot_token)
 
 # load cog (activate it on bot)
@@ -120,8 +120,9 @@ async def idle_alerts(guild_id):
         if member.bot == False:
           await member.send(second_message) # DM second message
 
-# @tasks.loop(hours=504)
-@tasks.loop(seconds=120)
+
+#@tasks.loop(seconds=120)
+@tasks.loop(hours=504)
 async def clear_weekly():
   print(f"Clearing weekly playlists {datetime.utcnow()}")
   weekly_ids, weekly_names = get_all_playlists_with_name(sp, 'weekly')
