@@ -45,8 +45,9 @@ logger.addHandler(handler)
 
 # puts credentials for Jeremys account into SpotifyOAuth and initiate spotify connection instance
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
-#spotipy_prompt = spot_token.get_access_token()
-sp = spotipy.Spotify(auth_manager=spot_token)
+spotipy_dict = spot_token.get_access_token()
+sp_token = spotipy_dict['access_token']
+sp = spotipy.Spotify(auth_manager=sp_token)
 
 # load cog (activate it on bot)
 @client.command()
