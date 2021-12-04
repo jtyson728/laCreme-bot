@@ -55,7 +55,7 @@ spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
                         cache_handler=MemoryCacheHandler(token_info=spot_token_info))
 #print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
 #spot_token = SpotifyClientCredentials(client_id=spotify_client_id,client_secret=spotify_client_secret,scope=scope)
-sp = spotipy.Spotify(auth_manager=spot_token)
+sp = spotipy.Spotify(auth_manager=spot_token_info)
 
 # load cog (activate it on bot)
 @client.command()
