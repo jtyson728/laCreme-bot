@@ -31,8 +31,8 @@ class Admin(commands.Cog):
     if(ctx.author.name in admins):
       compilations = discord.utils.get(ctx.guild.channels, name='compilations')
       this_guild=ctx.message.guild
-      creme_category = discord.utils.get(this_guild.channels, name='5 packs.').id
-      loosie_category = discord.utils.get(this_guild.channels, name='loosies.').id
+      creme_category = discord.utils.get(this_guild.channels, name='5 Packs.').id
+      loosie_category = discord.utils.get(this_guild.channels, name='Loosies.').id
       for channel in this_guild.text_channels:
         if(channel.category_id == creme_category or channel.category_id == loosie_category):
           print(f'Channel name: {channel.name} Channel ID: {channel.id}')
@@ -100,8 +100,8 @@ class Admin(commands.Cog):
     last_month = datetime.now() - timedelta(days=30)
     admin_channel_id = discord.utils.get(ctx.guild.channels, name='admin').id
     admin_channel = self.client.get_channel(admin_channel_id)
-    creme_category = discord.utils.get(this_guild.channels, name='5 packs.').id
-    loosie_category = discord.utils.get(this_guild.channels, name='loosies.').id
+    creme_category = discord.utils.get(this_guild.channels, name='5 Packs.').id
+    loosie_category = discord.utils.get(this_guild.channels, name='Loosies.').id
     creme_count = 0
     loosie_count = 0
     gen_count = 0

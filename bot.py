@@ -96,7 +96,7 @@ async def on_command_error(ctx, error):
       return
     raise error
 
-@tasks.loop(hours=24)
+# @tasks.loop(hours=24)
 async def idle_alerts(guild_id):
   print("sending idle alerts...")
   guild = client.get_guild(guild_id)

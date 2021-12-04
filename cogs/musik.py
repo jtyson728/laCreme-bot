@@ -23,8 +23,8 @@ class Musik(commands.Cog):
     # if the message came from the bot itself, then ignore it
     if message.author == self.client.user:
       return
-    creme_category = discord.utils.get(message.guild.channels, name='5 packs.').id
-    loosie_category = discord.utils.get(message.guild.channels, name='loosies.').id
+    creme_category = discord.utils.get(message.guild.channels, name='5 Packs.').id
+    loosie_category = discord.utils.get(message.guild.channels, name='Loosies.').id
     msg = message.content
     def check(msg):
       return msg.author == message.author and msg.channel == message.channel
