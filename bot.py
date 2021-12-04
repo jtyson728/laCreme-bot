@@ -8,7 +8,7 @@ from discord.ext.commands import CommandNotFound
 import spotipy
 import apscheduler
 from apscheduler.schedulers.background import BackgroundScheduler
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import requests
 import json
 from datetime import datetime, timedelta
@@ -22,6 +22,7 @@ spotify_client_secret = os.environ['SPOTIPY_CLIENT_SECRET']
 scope = "playlist-modify-public user-library-read user-modify-playback-state"
 redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
 spotify_username = os.environ['SPOT_USERNAME']
+spot_token_info = os.environ['TOKEN_INFO']
 admins = os.environ['ADMINS']
 laCreme_bot_test_id = 859275367712555029
 print(redirect_uri)
@@ -43,11 +44,15 @@ handler = logging.FileHandler(filename='laCreme.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-# puts credentials for Jeremys account into SpotifyOAuth and initiate spotify connection instance
-spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope,show_dialog=True, open_browser=True)
-# spotipy_dict = spot_token.get_access_token()
-# sp_token = spotipy_dict['access_token']
-sp = spotipy.Spotify(auth_manager=spot_token)
+#puts credentials for account into SpotifyOAuth and initiate spotify connection instance
+# spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
+#                         client_secret=spotify_client_secret,
+#                         redirect_uri=redirect_uri,
+#                         scope=scope,
+#                         cache_handler=MemoryCacheHandler(token_info=spot_token_info))
+# print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
+#spot_token = SpotifyClientCredentials(client_id=spotify_client_id,client_secret=spotify_client_secret,scope=scope)
+sp = spotipy.Spotify(auth=spot_token_info)
 
 # load cog (activate it on bot)
 @client.command()
