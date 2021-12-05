@@ -39,11 +39,14 @@ class Admin(commands.Cog):
           all_messages = await channel.history().flatten()
           for post in all_messages:
             if ('https://open.spotify.com') in post.content:
-              link,description = split_music_message(post.content)
-              playlist_songs = get_playlist_songs(sp, link)
-              add_songs_to_playlist(sp, playlist_songs, f'{post.channel.name} archive')
-              add_songs_to_playlist(sp, playlist_songs, f'{post.author.name}')
-              await update_profile(sp, post.author.name, post)
+              try:
+                link,description = split_music_message(post.content)
+                playlist_songs = get_playlist_songs(sp, link)
+                add_songs_to_playlist(sp, playlist_songs, f'{post.channel.name} archive')
+                add_songs_to_playlist(sp, playlist_songs, f'{post.author.name}')
+                await update_profile(sp, post.author.name, post)
+              except:
+                print("Creme posting was ill formatted, ignoring this for now")
 
       sp.user_playlist_create(user=spotify_username,public=True,name='lacreme weekly',collaborative=False)
       sp.user_playlist_create(user=spotify_username,public=True,name='hangingout weekly',collaborative=False)

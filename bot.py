@@ -51,11 +51,11 @@ logger.addHandler(handler)
 #puts credentials for account into SpotifyOAuth and initiate spotify connection instance
 access_token = st.start_session(sp_dc,sp_key)[0]
 
-spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
-                        client_secret=spotify_client_secret,
-                        redirect_uri=redirect_uri,
-                        scope=scope,
-                        cache_handler=MemoryCacheHandler(token_info=spot_token_info))
+# spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
+#                         client_secret=spotify_client_secret,
+#                         redirect_uri=redirect_uri,
+#                         scope=scope,
+#                         cache_handler=MemoryCacheHandler(token_info=spot_token_info))
 #print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
 
 sp = spotipy.Spotify(auth=access_token)
