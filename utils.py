@@ -1,6 +1,7 @@
 import apscheduler
 import discord
 import os
+import re
 from discord.ext import commands, tasks
 import requests
 import json
@@ -16,15 +17,8 @@ class Post:
 # splits message into 2 parts: playlist link, and their description for the playlist
 def split_music_message(msg):
   if len(msg.split()) > 1:
-    if msg.startswith('https://open.spotify.com'):
-      link = msg.split()[0]
-      description = msg.split(None, 1)[1]
-    else:
-      link_index = msg.index('https')
-      description = msg[:link_index]
-      link = msg[link_index:]
-    print(f'This is the link: {link}')
-    print(f'This is the description: {description}')
+    link = re.search("(?P<url>https?://open.spotify[^\s]+)", msg).group("url")
+    description = re.sub("(?P<url>https?://open.spotify[^\s]+)", '', msg)
   else:
     link = msg
     description = ''
