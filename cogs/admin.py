@@ -37,7 +37,7 @@ class Admin(commands.Cog):
       for channel in this_guild.text_channels:
         if(channel.category_id == creme_category or channel.category_id == loosie_category):
           print(f'===============Channel name: {channel.name} Channel ID: {channel.id}==============')
-          all_messages = await channel.history().flatten()
+          all_messages = await channel.history(limit=None).flatten()
           for post in all_messages:
             if ('https://open.spotify.com') in post.content:
               link,description = split_music_message(post.content)
