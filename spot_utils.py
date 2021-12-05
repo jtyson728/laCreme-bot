@@ -158,9 +158,13 @@ async def update_profile(sp, username, message):
     top_3_genres = ','.join(sorted(genre_count, key=genre_count.get, reverse=True)[:3])
     playlist_link = playlist['external_urls']['spotify']
     time_period = median(years)
+    if user.nick == None:
+      displayname = username
+    else:
+      displayname = user.nick
     embed = discord.Embed(
       title = username,
-      description = f'Link to {user.nick}\'s Tunes: \n {playlist_link}',
+      description = f'Link to {displayname}\'s Tunes: \n {playlist_link}',
       colour = discord.Colour.random()
     )
     embed.set_thumbnail(url = user.avatar_url)
