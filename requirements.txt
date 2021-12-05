@@ -3,6 +3,7 @@ APScheduler==3.7.0
 astroid==2.6.2
 async-timeout==3.0.1
 attrs==21.2.0
+beautifulsoup4==4.10.0
 certifi==2021.5.30
 chardet==4.0.0
 colorama==0.4.4
@@ -11,12 +12,15 @@ discord.py==1.7.3
 idna==2.10
 isort==5.9.1
 lazy-object-proxy==1.6.0
+lxml==4.6.4
 mccabe==0.6.1
 multidict==5.1.0
 pylint==2.9.1
 pytz==2021.1
 requests==2.25.1
 six==1.16.0
+soupsieve==2.3.1
+spotify-token==1.0.0
 spotipy==2.19.0
 toml==0.10.2
 typing-extensions==3.10.0.0

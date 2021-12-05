@@ -6,6 +6,7 @@ import logging
 from discord.ext import commands, tasks
 from discord.ext.commands import CommandNotFound
 import spotipy
+import spotify_token as st
 import apscheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from spotipy.cache_handler import MemoryCacheHandler
@@ -24,6 +25,8 @@ scope = "playlist-modify-public user-library-read user-modify-playback-state"
 redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
 spotify_username = os.environ['SPOT_USERNAME']
 spot_token_info = os.environ['TOKEN_INFO']
+sp_dc = os.environ['SP_DC']
+sp_key = os.environ['SP_KEY']
 admins = os.environ['ADMINS']
 laCreme_bot_test_id = 859275367712555029
 print(redirect_uri)
@@ -45,17 +48,17 @@ handler = logging.FileHandler(filename='laCreme.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-# handler = MemoryCacheHandler(token_info=spot_token_info)
-
 #puts credentials for account into SpotifyOAuth and initiate spotify connection instance
+access_token = st.start_session(sp_dc,sp_key)[0]
+
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
                         client_secret=spotify_client_secret,
                         redirect_uri=redirect_uri,
                         scope=scope,
                         cache_handler=MemoryCacheHandler(token_info=spot_token_info))
 #print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
-#spot_token = SpotifyClientCredentials(client_id=spotify_client_id,client_secret=spotify_client_secret,scope=scope)
-sp = spotipy.Spotify(auth=spot_token_info)
+
+sp = spotipy.Spotify(auth=access_token)
 
 # load cog (activate it on bot)
 @client.command()
@@ -89,7 +92,7 @@ for filename in os.listdir('./cogs'):
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
   clear_weekly.start()
-  idle_alerts.start(laCreme_bot_test_id)
+  #idle_alerts.start(laCreme_bot_test_id)
 
 @client.event
 async def on_command_error(ctx, error):
