@@ -22,6 +22,10 @@ def split_music_message(msg):
   else:
     link = msg
     description = ''
+  print('------------------------------------------------------------------')
+  print(f"This is Link: {link}")
+  print(f'This is description: {description}')
+  print('------------------------------------------------------------------')
   return link, description
 
 # checks if input username exists in the server

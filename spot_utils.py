@@ -61,8 +61,11 @@ def get_playlist_songs(sp, link):
     for item in response['items']:
       track_ids_list.append(item['track']['id'])
   except SpotifyException as e:
-    response = sp.track(playlist_id)
-    track_ids_list.append(response['id'])
+    try:
+      response = sp.track(playlist_id)
+      track_ids_list.append(response['id'])
+    except Exception as e:
+      print(f'Failed because of {e}, not adding anywhere')
   
   return track_ids_list
 
@@ -70,17 +73,18 @@ def add_songs_to_playlist(sp, tracks_to_add, channel_name):
   # check to see if channel playlist already exists in dummy account
   add_id = get_existing_playlist_id(sp, channel_name)
   # if it exists, add items
-  if add_id:
-    present_songs = get_playlist_songs(sp, add_id)
-    if(len(present_songs) > 0):
-      tracks_to_add = [track for track in tracks_to_add if track not in present_songs]
-    if(not len(tracks_to_add) == 0):
+  if len(tracks_to_add) > 0:
+    if add_id:
+      present_songs = get_playlist_songs(sp, add_id)
+      if(len(present_songs) > 0):
+        tracks_to_add = [track for track in tracks_to_add if track not in present_songs]
+      if(not len(tracks_to_add) == 0):
+        sp.playlist_add_items(add_id, tracks_to_add)
+    # if it doesn't exist, create playlist, then get its id, then add songs to that playlist
+    else:
+      sp.user_playlist_create(user=spotify_username,public=True,name=channel_name,collaborative=False)
+      add_id = get_existing_playlist_id(sp, channel_name)
       sp.playlist_add_items(add_id, tracks_to_add)
-  # if it doesn't exist, create playlist, then get its id, then add songs to that playlist
-  else:
-    sp.user_playlist_create(user=spotify_username,public=True,name=channel_name,collaborative=False)
-    add_id = get_existing_playlist_id(sp, channel_name)
-    sp.playlist_add_items(add_id, tracks_to_add)
 
 def get_existing_playlist_id(sp, channel_name):
   existing_playlists = sp.user_playlists(spotify_username)
