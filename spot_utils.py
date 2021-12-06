@@ -147,7 +147,7 @@ async def update_profile(sp, username, message):
   #user = discord.utils.get(message.guild.get_all_members(), name=username)
   user = message.author
   profiles_channel = discord.utils.get(message.guild.channels, name='profiles')
-  all_profiles = await profiles_channel.history().flatten()
+  all_profiles = await profiles_channel.history(limit=None).flatten()
   message_to_update = None
 
   for message in all_profiles:
@@ -161,18 +161,21 @@ async def update_profile(sp, username, message):
     tracklist, artists, years, genre_count = get_playlist_info(sp, playlist['id'])
     top_3_genres = ','.join(sorted(genre_count, key=genre_count.get, reverse=True)[:3])
     playlist_link = playlist['external_urls']['spotify']
-    time_period = median(years)
-    if user.nick == None:
+    time_period = round(median(years))
+    try:
+      if user.nick == None:
+        displayname = username
+      else:
+        displayname = user.nick
+    except:
       displayname = username
-    else:
-      displayname = user.nick
     embed = discord.Embed(
       title = username,
       description = f'Link to {displayname}\'s Tunes: \n {playlist_link}',
       colour = discord.Colour.random()
     )
     embed.set_thumbnail(url = user.avatar_url)
-    embed.add_field(name='Goes by', value=user.nick, inline=True)
+    embed.add_field(name='Goes by', value=displayname, inline=True)
     embed.add_field(name='Median time period', value=time_period, inline=True)
     embed.add_field(name='Top 3 Genres', value=top_3_genres, inline=False)
     
