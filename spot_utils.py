@@ -161,7 +161,12 @@ async def update_profile(sp, username, message):
     tracklist, artists, years, genre_count = get_playlist_info(sp, playlist['id'])
     top_3_genres = ','.join(sorted(genre_count, key=genre_count.get, reverse=True)[:3])
     playlist_link = playlist['external_urls']['spotify']
-    time_period = round(median(years))
+    try:
+      time_period = round(median(years))
+    except Exception as e:
+      print('Cant calculate time period')
+    if time_period == None or time_period == 0 or not time_period:
+      time_period = 'N/A'
     try:
       if user.nick == None:
         displayname = username
