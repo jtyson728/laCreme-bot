@@ -11,6 +11,7 @@ from spotipy.cache_handler import MemoryCacheHandler
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import requests
 import json
+from requests.exceptions import ReadTimeout
 from datetime import datetime, timedelta
 from time import sleep
 from utils import *
@@ -53,7 +54,7 @@ logger.addHandler(handler)
 #                         cache_handler=MemoryCacheHandler(token_info=spot_token_info))
 #print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
 
-sp = spotipy.Spotify(auth=access_token)
+sp = spotipy.Spotify(auth=access_token, requests_timeout=15, retries=10)
 
 # load cog (activate it on bot)
 @client.command()

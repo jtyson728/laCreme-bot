@@ -1,5 +1,6 @@
 #want to add all spotify actions in this file
 import os
+from requests.models import ReadTimeoutError
 import spotipy
 import discord
 from datetime import datetime
@@ -20,29 +21,54 @@ def get_playlist_info(sp, link):
   release_years = []
   playlist_id = link
   offset = 0
-  response = sp.playlist_items(playlist_id,
-                              offset=offset,
-                              fields='items.track.id,total,items.track.name,items.track.artists.name,items.track.artists.external_urls,items.track.album.release_date',
-                              additional_types=['track'])
-  if len(response['items']) == 0:
-    return track_ids_list
-  genre_count = dict()
-  for item in response['items']:
-    artist = sp.artist(item['track']["artists"][0]["external_urls"]["spotify"])
-    for i in artist['genres']:
-      genre_count[i] = genre_count.get(i, 0) + 1
-    track_ids_list.append(item['track']['id'])
-    artists.append(item['track']['artists'][0]['name'])
-    try:
-      release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y-%m-%d').year))
-    except ValueError as ve:
+  try:
+    response = sp.playlist_items(playlist_id,
+                                offset=offset,
+                                fields='items.track.id,total,items.track.name,items.track.artists.name,items.track.artists.external_urls,items.track.album.release_date',
+                                additional_types=['track'])
+    if len(response['items']) == 0:
+      return track_ids_list
+    genre_count = dict()
+    for item in response['items']:
+      artist = sp.artist(item['track']["artists"][0]["external_urls"]["spotify"])
+      for i in artist['genres']:
+        genre_count[i] = genre_count.get(i, 0) + 1
+      track_ids_list.append(item['track']['id'])
+      artists.append(item['track']['artists'][0]['name'])
       try:
-        release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y').year))
-      except ValueError as ee:
-        continue
+        release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y-%m-%d').year))
+      except ValueError as ve:
+        try:
+          release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y').year))
+        except ValueError as ee:
+          continue
+    return track_ids_list, artists, release_years, genre_count
+  except ReadTimeoutError:
+    print("Request timeout, Retrying")
+    response = sp.playlist_items(playlist_id,
+                                offset=offset,
+                                fields='items.track.id,total,items.track.name,items.track.artists.name,items.track.artists.external_urls,items.track.album.release_date',
+                                additional_types=['track'])
+    if len(response['items']) == 0:
+      return track_ids_list
+    genre_count = dict()
+    for item in response['items']:
+      artist = sp.artist(item['track']["artists"][0]["external_urls"]["spotify"])
+      for i in artist['genres']:
+        genre_count[i] = genre_count.get(i, 0) + 1
+      track_ids_list.append(item['track']['id'])
+      artists.append(item['track']['artists'][0]['name'])
+      try:
+        release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y-%m-%d').year))
+      except ValueError as ve:
+        try:
+          release_years.append(int(datetime.strptime(item['track']['album']['release_date'], '%Y').year))
+        except ValueError as ee:
+          continue
+    return track_ids_list, artists, release_years, genre_count
   # features = sp.audio_features(track_ids_list[0])
   # print(json.dumps(features, indent=4))
-  return track_ids_list, artists, release_years, genre_count
+  #return track_ids_list, artists, release_years, genre_count
 
 
 def get_playlist_songs(sp, link):
