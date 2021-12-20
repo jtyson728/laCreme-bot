@@ -7,8 +7,6 @@ from discord.ext import commands, tasks
 from discord.ext.commands import CommandNotFound
 import spotipy
 import spotify_token as st
-import apscheduler
-from apscheduler.schedulers.background import BackgroundScheduler
 from spotipy.cache_handler import MemoryCacheHandler
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import requests
@@ -28,12 +26,9 @@ spot_token_info = os.environ['TOKEN_INFO']
 sp_dc = os.environ['SP_DC']
 sp_key = os.environ['SP_KEY']
 admins = os.environ['ADMINS']
+access_token = os.environ['LOCAL_TOKEN']
 laCreme_bot_test_id = 859275367712555029
 print(redirect_uri)
-
-# create apscheduler object
-job_defaults = {'max_instances':3}
-scheduler = BackgroundScheduler(daemon=True, job_defaults=job_defaults)
 
 #discord bot credentials (ask Jeremy for environment keys) and create a discord client connection
 intents = discord.Intents.default()
@@ -49,7 +44,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(me
 logger.addHandler(handler)
 
 #puts credentials for account into SpotifyOAuth and initiate spotify connection instance
-access_token = st.start_session(sp_dc,sp_key)[0]
+# access_token = st.start_session(sp_dc,sp_key)[0]
 
 # spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
 #                         client_secret=spotify_client_secret,
