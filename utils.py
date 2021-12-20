@@ -1,4 +1,3 @@
-import apscheduler
 import discord
 import os
 import re

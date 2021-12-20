@@ -3,14 +3,12 @@ import os
 import discord
 from datetime import datetime, timedelta
 import spotipy
-import apscheduler
-from apscheduler.schedulers.background import BackgroundScheduler
 from spotipy.oauth2 import SpotifyOAuth
 from discord.ext import commands, tasks
 from utils import *
 from spot_utils import *
 sys.path.append(os.path.abspath('../'))
-from bot import sp, scheduler, spotify_username, admins
+from bot import sp, spotify_username, admins
 
 class Admin(commands.Cog):
   def __init__(self, client):

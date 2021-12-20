@@ -3,15 +3,13 @@ import os
 import discord
 from discord.ext import commands, tasks
 import spotipy
-import apscheduler
-from apscheduler.schedulers.background import BackgroundScheduler
 from spotipy.oauth2 import SpotifyOAuth
 from utils import *
 import requests
 import json
 from utils import *
 from spot_utils import *
-from bot import sp, scheduler, spotify_username, admins
+from bot import sp, spotify_username, admins
 
 class Musik(commands.Cog):
   def __init__(self, client):

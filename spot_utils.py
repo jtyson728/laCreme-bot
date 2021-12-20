@@ -2,7 +2,6 @@
 import os
 import spotipy
 import discord
-import apscheduler
 from datetime import datetime
 from spotipy.exceptions import SpotifyException
 from spotipy.oauth2 import SpotifyOAuth
