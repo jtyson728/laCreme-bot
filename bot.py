@@ -44,7 +44,7 @@ logger.addHandler(handler)
 cache_handler = spotipy.cache_handler.MemoryCacheHandler(token_info=spot_token_info)
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
                         client_secret=spotify_client_secret,
-                        #redirect_uri=redirect_uri,
+                        redirect_uri=redirect_uri,
                         scope=scope,
                         cache_handler=cache_handler)
 #print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
