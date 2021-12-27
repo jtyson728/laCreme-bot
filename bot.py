@@ -41,12 +41,12 @@ logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='laCreme.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
-
+cache_handler = spotipy.cache_handler.MemoryCacheHandler(token_info=spot_token_info)
 spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
                         client_secret=spotify_client_secret,
                         redirect_uri=redirect_uri,
                         scope=scope,
-                        cache_handler=MemoryCacheHandler(token_info=spot_token_info))
+                        cache_handler=cache_handler)
 #print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
 
 # sp = spotipy.Spotify(auth=access_token, requests_timeout=15, retries=10)
