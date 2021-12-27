@@ -24,10 +24,8 @@ scope = "playlist-modify-public user-library-read user-modify-playback-state"
 redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
 spotify_username = os.environ['SPOT_USERNAME']
 spot_token_info = os.environ['TOKEN_INFO']
-sp_dc = os.environ['SP_DC']
-sp_key = os.environ['SP_KEY']
 admins = os.environ['ADMINS']
-access_token = os.environ['LOCAL_TOKEN']
+#access_token = os.environ['LOCAL_TOKEN']
 laCreme_bot_test_id = 859275367712555029
 print(redirect_uri)
 
@@ -44,17 +42,15 @@ handler = logging.FileHandler(filename='laCreme.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-#puts credentials for account into SpotifyOAuth and initiate spotify connection instance
-# access_token = st.start_session(sp_dc,sp_key)[0]
-
-# spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
-#                         client_secret=spotify_client_secret,
-#                         redirect_uri=redirect_uri,
-#                         scope=scope,
-#                         cache_handler=MemoryCacheHandler(token_info=spot_token_info))
+spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
+                        client_secret=spotify_client_secret,
+                        redirect_uri=redirect_uri,
+                        scope=scope,
+                        cache_handler=MemoryCacheHandler(token_info=spot_token_info))
 #print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
 
-sp = spotipy.Spotify(auth=access_token, requests_timeout=15, retries=10)
+# sp = spotipy.Spotify(auth=access_token, requests_timeout=15, retries=10)
+sp = spotipy.Spotify(auth_manager=spot_token, requests_timeout=15, retries=10)
 
 # load cog (activate it on bot)
 @client.command()
