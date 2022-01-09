@@ -29,6 +29,7 @@ class Admin(commands.Cog):
     split_message_worked = True
     if(ctx.author.name in admins):
       compilations = discord.utils.get(ctx.guild.channels, name='compilations')
+      latenight = discord.utils.get(ctx.guild.channels, name='latenightpartytunes')
       this_guild=ctx.message.guild
       creme_category = discord.utils.get(this_guild.channels, name='5 Packs.').id
       loosie_category = discord.utils.get(this_guild.channels, name='Loosies.').id
@@ -44,7 +45,7 @@ class Admin(commands.Cog):
               add_songs_to_playlist(sp, playlist_songs, f'{post.author.name}')
               await update_profile(sp, post.author.name, post)
 
-      sp.user_playlist_create(user=spotify_username,public=True,name='lacreme weekly',collaborative=False)
+      sp.user_playlist_create(user=spotify_username,public=True,name='lacréme weekly',collaborative=False)
       sp.user_playlist_create(user=spotify_username,public=True,name='hangingout weekly',collaborative=False)
       sp.user_playlist_create(user=spotify_username,public=True,name='partytunes weekly',collaborative=False)
       creme_embed = discord.Embed(
@@ -53,10 +54,10 @@ class Admin(commands.Cog):
         colour = discord.Colour.random()
       )
       # creme_embed.set_thumbnail(url = user.avatar_url)
-      playlist = get_existing_playlist_object(sp, 'lacreme weekly')
+      playlist = get_existing_playlist_object(sp, 'lacréme weekly')
       creme_weekly = playlist['external_urls']['spotify']
       creme_embed.add_field(name='LaCreme Weekly', value=creme_weekly, inline=False)
-      playlist = get_existing_playlist_object(sp, 'lacreme archive')
+      playlist = get_existing_playlist_object(sp, 'lacréme archive')
       creme_archive = playlist['external_urls']['spotify']
       creme_embed.add_field(name='LaCreme Archive', value=creme_archive, inline=False)
       

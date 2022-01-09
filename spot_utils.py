@@ -208,10 +208,12 @@ async def update_profile(sp, username, message):
     embed.add_field(name='Goes by', value=displayname, inline=True)
     embed.add_field(name='Median time period', value=time_period, inline=True)
     embed.add_field(name='Top 3 Genres', value=top_3_genres, inline=False)
-    
-    if not message_to_update:
-      await profiles_channel.send(embed=embed)
-    else:
-      await message_to_update.edit(embed=embed)
+    try:
+      if not message_to_update:
+        await profiles_channel.send(embed=embed)
+      else:
+        await message_to_update.edit(embed=embed)
+    except:
+      print(f'Unable to add or update profile for {displayname}')
 
 

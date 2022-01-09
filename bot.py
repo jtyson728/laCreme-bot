@@ -41,16 +41,27 @@ logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='laCreme.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
-cache_handler = spotipy.cache_handler.MemoryCacheHandler(token_info=spot_token_info)
-spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
-                        client_secret=spotify_client_secret,
-                        redirect_uri=redirect_uri,
-                        scope=scope,
-                        cache_handler=cache_handler)
+# cache_handler = spotipy.cache_handler.MemoryCacheHandler()
+# spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
+#                         client_secret=spotify_client_secret,
+#                         redirect_uri=redirect_uri,
+#                         scope=scope,
+#                         cache_handler=cache_handler)
+
 #print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
+spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
+
+# if not spot_token.validate_token(cache_handler.get_cached_token()):
+#   # Step 2. Display sign in link when no token
+#   auth_url = spot_token.get_authorize_url()
+# print(auth_url)
+
+#readyToGo = input('Please wait while we authorize you on a browser')
 
 # sp = spotipy.Spotify(auth=access_token, requests_timeout=15, retries=10)
 sp = spotipy.Spotify(auth_manager=spot_token, requests_timeout=15, retries=10)
+
+# print(f'Dictionary: {cache_handler.token_info}')
 
 # load cog (activate it on bot)
 @client.command()
@@ -132,5 +143,6 @@ async def clear_weekly():
   weekly_ids, weekly_names = get_all_playlists_with_name(sp, 'weekly')
   for weekly_id, weekly_name in zip(weekly_ids,weekly_names):
     clear_and_archive_playlist(sp, weekly_id, weekly_name, True)
+  print("Done clearing weeklys")
 
 client.run(bot_token)
