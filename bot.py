@@ -25,6 +25,7 @@ redirect_uri = os.environ['SPOTIPY_REDIRECT_URI']
 spotify_username = os.environ['SPOT_USERNAME']
 spot_token_info = os.environ['TOKEN_INFO']
 admins = os.environ['ADMINS']
+token_info = {'access_token': 'BQAkQWdDUE0Wj4wxInt7enGd_gSfMqfjA29e5nlUnlk7Dfyu-IZVP53UpxaMkSo7boq06kwsLgpQCVCjYgT6rdg8ZAxOrDINSYB1FVvlVj0Lzs7HsDUXFLZRx9Ugo-TP7RpZ586G2zKydVnMr3R0UkEQJ46UYCG9pGbRR-LVkMAio4upZwyG75RuuDqZ3DNlQHP52t78v3hXYg', 'token_type': 'Bearer', 'expires_in': 3600, 'scope': 'playlist-modify-public user-library-read user-modify-playback-state', 'expires_at': 1641953724, 'refresh_token': 'AQCTyzTDGp1FULZYoFE8G8et6FljHCUawW6VJLZuZJp1fWVblGPtrGKeHpZRnpxMgg1pAEAgczWOHVs-u74SDUHp_1JuRbVi68k7RX7VLrFQRBhrTb0tZtUQQA7sN5E1tA8'}
 #access_token = os.environ['LOCAL_TOKEN']
 laCreme_bot_test_id = 859275367712555029
 print(redirect_uri)
@@ -41,16 +42,16 @@ logger.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='laCreme.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
-# cache_handler = spotipy.cache_handler.MemoryCacheHandler()
-# spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
-#                         client_secret=spotify_client_secret,
-#                         redirect_uri=redirect_uri,
-#                         scope=scope,
-#                         cache_handler=cache_handler)
+cache_handler = spotipy.cache_handler.MemoryCacheHandler(token_info=token_info)
+spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,
+                        client_secret=spotify_client_secret,
+                        redirect_uri=redirect_uri,
+                        scope=scope,
+                        show_dialog=False,
+                        cache_handler=cache_handler)
 
-#print(f'This is access token----> {spot_token.get_access_token(as_dict=False)}')
-spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope)
-
+# spot_token=SpotifyOAuth(username=spotify_username,client_id=spotify_client_id,client_secret=spotify_client_secret,redirect_uri=redirect_uri,scope=scope, show_dialog=False)
+# print(f'{spot_token.get_access_token(as_dict=True)}')
 # if not spot_token.validate_token(cache_handler.get_cached_token()):
 #   # Step 2. Display sign in link when no token
 #   auth_url = spot_token.get_authorize_url()
