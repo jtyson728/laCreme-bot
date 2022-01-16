@@ -153,7 +153,6 @@ def get_all_playlists_with_name(sp, name):
   return playlist_ids, playlist_names
 
 def clear_and_archive_playlist(sp, weekly_id, weekly_name, archive):
-  print(weekly_name)
   track_ids = get_playlist_songs(sp, weekly_id)
   if(track_ids):
     results = sp.playlist_remove_all_occurrences_of_items(weekly_id, track_ids)

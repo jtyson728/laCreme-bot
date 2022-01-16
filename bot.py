@@ -95,7 +95,7 @@ for filename in os.listdir('./cogs'):
 @client.event
 async def on_ready():
   print('We have logged in as {0.user}'.format(client))
-  clear_weekly.start()
+  #clear_weekly.start()
   #idle_alerts.start(laCreme_bot_test_id)
 
 @client.event

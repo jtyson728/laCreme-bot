@@ -25,6 +25,14 @@ class Admin(commands.Cog):
       await ctx.send(f'You do not have admin permissions to run this command')
 
   @commands.command()
+  async def clear_weeklys(self, ctx):
+    print(f"Clearing weekly playlists {datetime.utcnow()}")
+    weekly_ids, weekly_names = get_all_playlists_with_name(sp, 'weekly')
+    for weekly_id, weekly_name in zip(weekly_ids,weekly_names):
+      clear_and_archive_playlist(sp, weekly_id, weekly_name, True)
+    print("Done clearing weeklys")
+
+  @commands.command()
   async def scan(self, ctx):
     split_message_worked = True
     if(ctx.author.name in admins):
